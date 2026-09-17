@@ -51,11 +51,11 @@ alias rdsts="sys status valkey"
 # --- = --- GIT ALIASES --- = ---
 # Project default branch checkout (override per-machine with: set -Ux GCM_BRANCH <name>)
 function git_main_branch
-    git symbolic-ref --quiet --short refs/remotes/origin/HEAD | string replace 'origin/' ''
+    git symbolic-ref --quiet --short refs/remotes/origin/HEAD 2>/dev/null | string replace 'origin/' ''
 end
 
 function current_branch
-    git symbolic-ref --quiet --short HEAD
+    git symbolic-ref --quiet --short HEAD 2>/dev/null
 end
 
 alias gsts="git status"
@@ -64,13 +64,23 @@ alias gsta="git status"
 alias ga="git add"
 alias gaa="git add ."
 alias gm="git commit"
-alias gma="gaa & gm"
 alias gps="git push"
 alias gpsf="git push --force-with-lease"
 alias gbl="git branch --list"
+alias gco="git checkout"
+alias gcb="git checkout -b"
+alias gf="git fetch"
+alias gp="git pull"
 
-function gpsup --description 'git push --set-upstream origin <current-branch>'
-    if test -z "$current_branch"
+function gma
+    gaa
+    and gm
+end
+
+function gpsup
+    set branch (current_branch)
+
+    if test -z "$branch"
         echo "gpsup: not on a branch (detached HEAD)" >&2
         return 1
     end
@@ -78,13 +88,42 @@ function gpsup --description 'git push --set-upstream origin <current-branch>'
     git push --set-upstream origin $branch
 end
 
-alias gco="git checkout"
-alias gcb="git checkout -b"
-alias gf="git fetch"
-alias gp="git pull"
-alias gfp="gf & gp"
-alias grm="git rebase $git_main_branch"
+function gfp
+    gf
+    and gp
+end
 
-alias gcm="git checkout $git_main_branch"
+function grm
+    git rebase (git_main_branch)
+end
+
+function gcm
+    git checkout (git_main_branch)
+end
+
+function grb
+    set current (current_branch)
+
+    if test -z "$current"
+        echo "grb: detached HEAD" >&2
+        return 1
+    end
+
+    if test (count $argv) -gt 0
+        set base $argv[1]
+    else
+        set base (git_main_branch)
+    end
+
+    if test -z "$base"
+        echo "grb: could not determine base branch" >&2
+        return 1
+    end
+
+    git switch $base
+    and git pull --ff-only origin $base
+    and git switch $current
+    and git rebase $base
+end
 
 mise activate fish | source
