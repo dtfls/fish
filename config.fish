@@ -1,10 +1,16 @@
 source /usr/share/cachyos-fish-config/cachyos-config.fish
 
-# overwrite greeting
-# potentially disabling fastfetch
-#function fish_greeting
-#    # smth smth
-#end
+if status is-interactive
+    set -g theme_display_git_default_branch yes
+    set -g theme_title_display_process yes
+    set -g theme_title_display_path no
+    set -g theme_title_use_abbreviated_path no
+    set -g theme_date_format "+%d/%m/%y %H:%M"
+    set -g theme_display_user yes
+    set -g theme_display_hostname yes
+    set -g fish_prompt_pwd_dir_length 6
+    set -g theme_display_jobs_verbose yes
+end
 
 export EDITOR="vim"
 
@@ -44,7 +50,13 @@ alias rdsts="sys status valkey"
 
 # --- = --- GIT ALIASES --- = ---
 # Project default branch checkout (override per-machine with: set -Ux GCM_BRANCH <name>)
-set -q GCM_BRANCH; or set -g GCM_BRANCH main
+function git_main_branch
+    git symbolic-ref --quiet --short refs/remotes/origin/HEAD | string replace 'origin/' ''
+end
+
+function current_branch
+    git symbolic-ref --quiet --short HEAD
+end
 
 alias gsts="git status"
 alias gst="gsts"
@@ -58,9 +70,7 @@ alias gpsf="git push --force-with-lease"
 alias gbl="git branch --list"
 
 function gpsup --description 'git push --set-upstream origin <current-branch>'
-    set -l branch (git symbolic-ref --quiet --short HEAD)
-
-    if test -z "$branch"
+    if test -z "$current_branch"
         echo "gpsup: not on a branch (detached HEAD)" >&2
         return 1
     end
@@ -73,8 +83,8 @@ alias gcb="git checkout -b"
 alias gf="git fetch"
 alias gp="git pull"
 alias gfp="gf & gp"
-alias grm="git rebase $GCM_BRANCH"
+alias grm="git rebase $git_main_branch"
 
-alias gcm="git checkout $GCM_BRANCH"
+alias gcm="git checkout $git_main_branch"
 
 mise activate fish | source
