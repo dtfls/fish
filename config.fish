@@ -12,6 +12,15 @@ if status is-interactive
     set -g theme_display_jobs_verbose yes
 end
 
+set -g __fish_git_prompt_showdirtystate 'yes'
+set -g __fish_git_prompt_showuntrackedfiles 'yes'
+set -g __fish_git_prompt_showupstream 'informative'
+set -g __fish_git_prompt_color_branch yellow
+set -g __fish_git_prompt_color_dirtystate red
+set -g __fish_git_prompt_color_stagedgreen
+
+
+
 export EDITOR="vim"
 
 
